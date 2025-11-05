@@ -1,28 +1,61 @@
-import { useState } from 'react'
+import React, { useState } from 'react';
+import RoleSelect from './components/RoleSelect';
+import LoginForm from './components/LoginForm';
+import Dashboard from './components/Dashboard';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [step, setStep] = useState('role'); // role | auth | dashboard
+  const [role, setRole] = useState(null); // 'citizen' | 'official'
+  const [user, setUser] = useState(null);
+  const [problems, setProblems] = useState([]);
+
+  const handleRoleSelect = (selected) => {
+    setRole(selected);
+    setStep('auth');
+  };
+
+  const handleLogin = (userData) => {
+    setUser(userData);
+    setStep('dashboard');
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    setRole(null);
+    setStep('role');
+  };
+
+  const addProblem = (data) => {
+    const newProblem = {
+      ...data,
+      status: 'Submitted',
+      createdAt: new Date().toISOString(),
+    };
+    setProblems((prev) => [newProblem, ...prev]);
+  };
+
+  const updateStatus = (index, status, proof) => {
+    setProblems((prev) => prev.map((p, i) => i === index ? { ...p, status, proof: proof || p.proof } : p));
+  };
+
+  if (step === 'role') {
+    return <RoleSelect onSelect={handleRoleSelect} />;
+  }
+
+  if (step === 'auth') {
+    return <LoginForm role={role} onBack={() => setStep('role')} onLogin={handleLogin} />;
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-lg">
-        <h1 className="text-3xl font-bold text-gray-800 mb-4">
-          Vibe Coding Platform
-        </h1>
-        <p className="text-gray-600 mb-6">
-          Your AI-powered development environment
-        </p>
-        <div className="text-center">
-          <button
-            onClick={() => setCount(count + 1)}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
-          >
-            Count is {count}
-          </button>
-        </div>
-      </div>
-    </div>
-  )
+    <Dashboard
+      role={role}
+      user={user}
+      problems={problems}
+      onAddProblem={addProblem}
+      onUpdateStatus={updateStatus}
+      onLogout={handleLogout}
+    />
+  );
 }
 
-export default App
+export default App;
